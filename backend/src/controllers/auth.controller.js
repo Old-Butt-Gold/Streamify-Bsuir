@@ -105,6 +105,8 @@ export async function logout(req, res)
 
 export async function onboard(req, res) {
     try {
+        if (req.user.isOnboarded) return res.status(400).json({ message: "You are already onboarded" });
+
         const userId = req.user._id;
 
         const { fullName, bio, nativeLanguage, learningLanguage, location } = req.body;
