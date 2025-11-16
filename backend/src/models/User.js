@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
 
-const SCHEMA_NAME = "User";
+export const USER_SCHEMA_NAME = "User";
 
 const userSchema = new mongoose.Schema(
     {
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
         friends: [
             {
                 type: mongoose.Schema.Types.ObjectId,
-                ref: SCHEMA_NAME,
+                ref: USER_SCHEMA_NAME,
             },
         ],
     },
@@ -72,6 +72,6 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
     return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const User = mongoose.model(SCHEMA_NAME, userSchema);
+const User = mongoose.model(USER_SCHEMA_NAME, userSchema);
 
 export default User;
