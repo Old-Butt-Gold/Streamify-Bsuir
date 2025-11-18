@@ -116,19 +116,35 @@ export async function acceptFriendRequest(req, res) {
 
 export async function getFriendRequests(req, res) {
     try {
+        const userId = req.user._id;
+
+        // 1. Входящие заявки (Оставляем как есть)
         const incomingReqs = await FriendRequest.find({
-            recipient: req.user.id,
+            recipient: userId,
             status: "pending",
         }).populate("sender", "fullName profilePic nativeLanguage learningLanguage");
 
+        // 2. Принятые заявки (УВЕДОМЛЕНИЯ О НОВЫХ ДРУЗЬЯХ)
+        // Показываем только те, что были приняты за последние 14 дней
+        const fourteen = new Date();
+        fourteen.setDate(fourteen.getDate() - 14);
+
         const acceptedReqs = await FriendRequest.find({
-            sender: req.user.id,
             status: "accepted",
-        }).populate("recipient", "fullName profilePic");
+            // Ищем заявки, где мы ЛИБО отправитель, ЛИБО получатель
+            $or: [
+                { sender: userId },
+                { recipient: userId }
+            ],
+            updatedAt: { $gt: fourteen } // Только новые
+        })
+            .populate("sender", "fullName profilePic")
+            .populate("recipient", "fullName profilePic")
+            .sort({ updatedAt: -1 }); // Сначала самые новые
 
         res.status(200).json({ incomingReqs, acceptedReqs });
     } catch (error) {
-        console.log("Error in getPendingFriendRequests controller", error.message);
+        console.log("Error in getFriendRequests controller", error.message);
         res.status(500).json({ message: "Internal Server Error" });
     }
 }

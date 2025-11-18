@@ -2,8 +2,10 @@ import { BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon } from "lucide-re
 import NoNotificationsFound from "../components/NoNotificationsFound";
 import useFriendRequests from "../hooks/useFriendRequests";
 import useAcceptFriendRequest from "../hooks/useAcceptFriendRequest";
+import useAuthUser from "../hooks/useAuthUser";
 
 const NotificationsPage = () => {
+    const { authUser } = useAuthUser();
     const {
         incomingRequests,
         acceptedRequests,
@@ -26,6 +28,7 @@ const NotificationsPage = () => {
                     </div>
                 ) : (
                     <>
+                        {/* INCOMING FRIEND REQUESTS */}
                         {incomingRequests.length > 0 && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -44,17 +47,17 @@ const NotificationsPage = () => {
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
                                                         <div className="avatar w-14 h-14 rounded-full bg-base-300">
-                                                            <img src={request.sender.profilePic} alt={request.sender.fullName} />
+                                                            <img src={request.sender.profilePic || "/avatar.png"} alt={request.sender.fullName} />
                                                         </div>
                                                         <div>
                                                             <h3 className="font-semibold">{request.sender.fullName}</h3>
                                                             <div className="flex flex-wrap gap-1.5 mt-1">
-                                <span className="badge badge-secondary badge-sm">
-                                  Native: {request.sender.nativeLanguage}
-                                </span>
+                                                                <span className="badge badge-secondary badge-sm">
+                                                                  Native: {request.sender.nativeLanguage}
+                                                                </span>
                                                                 <span className="badge badge-outline badge-sm">
-                                  Learning: {request.sender.learningLanguage}
-                                </span>
+                                                                  Learning: {request.sender.learningLanguage}
+                                                                </span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -74,7 +77,7 @@ const NotificationsPage = () => {
                             </section>
                         )}
 
-                        {/* ACCEPTED REQS NOTIFICATONS */}
+                        {/* ACCEPTED REQUESTS NOTIFICATIONS (NEW CONNECTIONS) */}
                         {acceptedRequests.length > 0 && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -84,7 +87,13 @@ const NotificationsPage = () => {
 
                                 <div className="space-y-3">
                                     {acceptedRequests.map((notification) => {
-                                        // Форматируем дату обновления (когда заявка была принята)
+                                        const isSender = notification.sender._id === authUser._id;
+                                        const friend = isSender ? notification.recipient : notification.sender;
+
+                                        const message = isSender
+                                            ? `${friend.fullName} accepted your friend request`
+                                            : `You accepted ${friend.fullName}'s friend request`;
+
                                         const formattedDate = notification.updatedAt
                                             ? new Date(notification.updatedAt).toLocaleDateString('en-US', {
                                                 month: 'short',
@@ -101,22 +110,22 @@ const NotificationsPage = () => {
                                                     <div className="flex items-start gap-3">
                                                         <div className="avatar mt-1 size-10 rounded-full">
                                                             <img
-                                                                src={notification.recipient.profilePic}
-                                                                alt={notification.recipient.fullName}
-                                                                className="object-cover"
+                                                                src={friend.profilePic || "/avatar.png"}
+                                                                alt={friend.fullName}
+                                                                className="object-cover rounded-full"
                                                             />
                                                         </div>
                                                         <div className="flex-1">
-                                                            <h3 className="font-semibold">{notification.recipient.fullName}</h3>
+                                                            <h3 className="font-semibold">{friend.fullName}</h3>
                                                             <p className="text-sm my-1">
-                                                                {notification.recipient.fullName} accepted your friend request
+                                                                {message}
                                                             </p>
                                                             <p className="text-xs flex items-center opacity-70">
                                                                 <ClockIcon className="h-3 w-3 mr-1" />
                                                                 {formattedDate}
                                                             </p>
                                                         </div>
-                                                        <div className="badge badge-success">
+                                                        <div className="badge badge-success text-white">
                                                             <MessageSquareIcon className="h-3 w-3 mr-1" />
                                                             New Friend
                                                         </div>
