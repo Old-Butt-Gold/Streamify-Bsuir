@@ -152,3 +152,57 @@ export async function onboard(req, res) {
         res.status(500).json({ message: "Internal Server Error" });
     }
 }
+
+export async function updateProfile(req, res) {
+    try {
+        const userId = req.user._id;
+        const { fullName, bio, nativeLanguage, learningLanguage, location, profilePic } = req.body;
+
+        let updatedData = {
+            fullName,
+            bio,
+            nativeLanguage,
+            learningLanguage,
+            location,
+            profilePic
+        };
+
+        if (!fullName || !bio || !nativeLanguage || !learningLanguage || !location || !profilePic) {
+            return res.status(400).json({
+                message: "All fields are required",
+                missingFields: [
+                    !fullName && "fullName",
+                    !bio && "bio",
+                    !nativeLanguage && "nativeLanguage",
+                    !learningLanguage && "learningLanguage",
+                    !location && "location",
+                    !profilePic && "profilePic",
+                ].filter(Boolean),
+            });
+        }
+
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            updatedData,
+            { new: true }
+        ).select("-password");
+
+        if (!updatedUser) return res.status(404).json({ message: "User not found" });
+
+        try {
+            await upsertStreamUser({
+                id: updatedUser._id.toString(),
+                name: updatedUser.fullName,
+                image: updatedUser.profilePic || "",
+            });
+            console.log(`User profile updated for ${updatedUser.fullName}`);
+        } catch (streamError) {
+            console.log("Error updating user profile:", streamError.message);
+        }
+
+        res.status(200).json(updatedUser);
+    } catch (error) {
+        console.error("Error in updateProfile:", error.message);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}

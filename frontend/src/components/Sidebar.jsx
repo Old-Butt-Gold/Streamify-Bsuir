@@ -58,25 +58,27 @@ const Sidebar = ({ isMobileOpen = false, onClose }) => {
 
             {/* USER PROFILE SECTION */}
             <div className="p-4 border-t border-base-300 mt-auto">
-                <div className="flex items-center gap-3">
+                <Link
+                    to="/profile"
+                    className={`flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-base-300 ${
+                        currentPath === "/profile" ? "bg-base-300" : ""
+                    }`}
+                    onClick={onClose}
+                >
                     <div className="avatar">
-                        <div className="w-10 rounded-full">
+                        <div className="w-10 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1">
                             <img
-                                src={authUser?.profilePic}
+                                src={authUser?.profilePic || "/avatar.png"}
                                 alt="User Avatar"
                                 className="object-cover"
-                                rel="noreferrer"
                             />
                         </div>
                     </div>
-                    <div className="flex-1 hidden sm:block">
-                        <p className="font-semibold text-sm">{authUser?.fullName}</p>
-                        <p className="text-xs text-success flex items-center gap-1">
-                            <span className="size-2 rounded-full bg-success inline-block" />
-                            Online
-                        </p>
+                    <div className="flex-1 hidden sm:block min-w-0">
+                        <p className="font-semibold text-sm truncate">{authUser?.fullName}</p>
+                        <p className="text-xs text-base-content/60 truncate">View Profile</p>
                     </div>
-                </div>
+                </Link>
             </div>
         </aside>
     );

@@ -1,7 +1,6 @@
-// Navbar.jsx
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, LogOutIcon, ShipWheelIcon, MenuIcon } from "lucide-react";
+import { BellIcon, LogOutIcon, ShipWheelIcon, MenuIcon, UserIcon } from "lucide-react";
 import useLogout from "../hooks/useLogout.js";
 import ThemeSelector from "./ThemeSelector.jsx";
 
@@ -15,7 +14,7 @@ const Navbar = ({ onToggleSidebar }) => {
         <nav className="bg-base-200 border-b border-base-300 sticky top-0 z-30 h-16">
             <div className="h-full px-4">
                 <div className="flex items-center justify-between h-full">
-                    {/* Левая часть - кнопка меню и логотип на странице чата */}
+                    {/* Left Side - Menu & Logo */}
                     <div className="flex items-center gap-4 flex-1">
                         {onToggleSidebar && (
                             <button
@@ -38,7 +37,7 @@ const Navbar = ({ onToggleSidebar }) => {
                         )}
                     </div>
 
-                    {/* Центральная часть - логотип для мобильных на странице чата */}
+                    {/* Center - Mobile Logo (Chat Page only) */}
                     {isChatPage && (
                         <div className="flex-1 flex justify-center lg:hidden">
                             <Link to={"/"} className="flex items-center gap-2.5">
@@ -50,7 +49,7 @@ const Navbar = ({ onToggleSidebar }) => {
                         </div>
                     )}
 
-                    {/* Правая часть - все элементы управления */}
+                    {/* Right Side - Actions */}
                     <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end">
                         <Link to={"/notifications"}>
                             <button className="btn btn-ghost btn-circle">
@@ -60,16 +59,17 @@ const Navbar = ({ onToggleSidebar }) => {
 
                         <ThemeSelector />
 
-                        <div className="avatar">
-                            <div className="w-8 sm:w-9 rounded-full">
+                        {/* Profile Link - Avatar is now clickable */}
+                        <Link to="/profile" className="btn btn-ghost btn-circle avatar">
+                            <div className="w-8 sm:w-9 rounded-full border border-base-300">
                                 <img
-                                    src={authUser?.profilePic}
+                                    src={authUser?.profilePic || "/avatar.png"}
                                     alt="User Avatar"
                                     className="object-cover"
                                     referrerPolicy="no-referrer"
                                 />
                             </div>
-                        </div>
+                        </Link>
 
                         <button
                             className="btn btn-ghost btn-circle"
