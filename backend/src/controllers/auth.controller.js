@@ -3,7 +3,11 @@ import jwt from "jsonwebtoken";
 import {upsertStreamUser} from "../lib/stream.js";
 
 export async function signup(req, res) {
-    const { email, password, fullName } = req.body;
+    let { email, password, fullName } = req.body;
+
+    fullName = fullName?.trim();
+    email = email?.trim();
+    password = password?.trim();
 
     try {
         if (!email || !password || !fullName) {
