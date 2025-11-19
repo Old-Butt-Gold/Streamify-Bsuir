@@ -6,13 +6,33 @@ export async function getRecommendedUsers(req, res) {
         const currentUserId = req.user.id;
         const currentUser = req.user;
 
+        const pendingRequests = await FriendRequest.find({
+            $or: [
+                { sender: currentUserId },
+                { recipient: currentUserId }
+            ],
+            status: "pending"
+        });
+
+        const pendingUserIds = pendingRequests.map(req =>
+            req.sender.toString() === currentUserId.toString()
+                ? req.recipient
+                : req.sender
+        );
+
+        const excludedIds = [
+            currentUserId,
+            ...currentUser.friends,
+            ...pendingUserIds
+        ];
+
         const recommendedUsers = await User.find({
             $and: [
-                { _id: { $ne: currentUserId } }, //exclude current user
-                { _id: { $nin: currentUser.friends } }, // exclude current user's friends
+                { _id: { $nin: excludedIds } },
                 { isOnboarded: true },
             ],
         }).select("-password");
+
         res.status(200).json(recommendedUsers);
     } catch (error) {
         console.error("Error in getRecommendedUsers controller", error.message);
@@ -118,31 +138,32 @@ export async function getFriendRequests(req, res) {
     try {
         const userId = req.user._id;
 
-        // 1. Входящие заявки (Оставляем как есть)
         const incomingReqs = await FriendRequest.find({
             recipient: userId,
             status: "pending",
         }).populate("sender", "fullName profilePic nativeLanguage learningLanguage");
 
-        // 2. Принятые заявки (УВЕДОМЛЕНИЯ О НОВЫХ ДРУЗЬЯХ)
-        // Показываем только те, что были приняты за последние 14 дней
+        const outgoingReqs = await FriendRequest.find({
+            sender: userId,
+            status: "pending",
+        }).populate("recipient", "fullName profilePic nativeLanguage learningLanguage");
+
         const fourteen = new Date();
         fourteen.setDate(fourteen.getDate() - 14);
 
         const acceptedReqs = await FriendRequest.find({
             status: "accepted",
-            // Ищем заявки, где мы ЛИБО отправитель, ЛИБО получатель
             $or: [
                 { sender: userId },
                 { recipient: userId }
             ],
-            updatedAt: { $gt: fourteen } // Только новые
+            updatedAt: { $gt: fourteen }
         })
             .populate("sender", "fullName profilePic")
             .populate("recipient", "fullName profilePic")
-            .sort({ updatedAt: -1 }); // Сначала самые новые
+            .sort({ updatedAt: -1 });
 
-        res.status(200).json({ incomingReqs, acceptedReqs });
+        res.status(200).json({ incomingReqs, outgoingReqs, acceptedReqs });
     } catch (error) {
         console.log("Error in getFriendRequests controller", error.message);
         res.status(500).json({ message: "Internal Server Error" });

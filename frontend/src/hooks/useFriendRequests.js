@@ -12,6 +12,7 @@ const useFriendRequests = () => {
         error,
         friendRequests: data,
         incomingRequests: data?.incomingReqs || [],
+        outgoingRequests: data?.outgoingReqs || [],
         acceptedRequests: data?.acceptedReqs || [],
     };
 };

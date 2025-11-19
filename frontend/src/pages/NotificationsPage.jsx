@@ -1,13 +1,16 @@
-import { BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon } from "lucide-react";
+import { BellIcon, ClockIcon, MessageSquareIcon, UserCheckIcon, SendIcon } from "lucide-react";
 import NoNotificationsFound from "../components/NoNotificationsFound";
 import useFriendRequests from "../hooks/useFriendRequests";
 import useAcceptFriendRequest from "../hooks/useAcceptFriendRequest";
 import useAuthUser from "../hooks/useAuthUser";
+import LanguageFlag from "../components/LanguageFlag.jsx";
+import { capitialize } from "../lib/utils.js";
 
 const NotificationsPage = () => {
     const { authUser } = useAuthUser();
     const {
         incomingRequests,
+        outgoingRequests,
         acceptedRequests,
         isLoading
     } = useFriendRequests();
@@ -28,7 +31,7 @@ const NotificationsPage = () => {
                     </div>
                 ) : (
                     <>
-                        {/* INCOMING FRIEND REQUESTS */}
+                        {/* 1. INCOMING FRIEND REQUESTS */}
                         {incomingRequests.length > 0 && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -46,17 +49,23 @@ const NotificationsPage = () => {
                                             <div className="card-body p-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="avatar w-14 h-14 rounded-full bg-base-300">
-                                                            <img src={request.sender.profilePic || "/avatar.png"} alt={request.sender.fullName} />
+                                                        <div className="avatar w-14 h-14 rounded-full">
+                                                            <img
+                                                                src={request.sender.profilePic || "/avatar.png"}
+                                                                alt={request.sender.fullName}
+                                                                className="rounded-full object-cover"
+                                                            />
                                                         </div>
                                                         <div>
                                                             <h3 className="font-semibold">{request.sender.fullName}</h3>
-                                                            <div className="flex flex-wrap gap-1.5 mt-1">
-                                                                <span className="badge badge-secondary badge-sm">
-                                                                  Native: {request.sender.nativeLanguage}
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                <span className="badge badge-secondary">
+                                                                    <LanguageFlag language={request.sender.nativeLanguage} />
+                                                                    Native: {capitialize(request.sender.nativeLanguage)}
                                                                 </span>
-                                                                <span className="badge badge-outline badge-sm">
-                                                                  Learning: {request.sender.learningLanguage}
+                                                                <span className="badge badge-outline">
+                                                                    <LanguageFlag language={request.sender.learningLanguage} />
+                                                                    Learning: {capitialize(request.sender.learningLanguage)}
                                                                 </span>
                                                             </div>
                                                         </div>
@@ -77,7 +86,59 @@ const NotificationsPage = () => {
                             </section>
                         )}
 
-                        {/* ACCEPTED REQUESTS NOTIFICATIONS (NEW CONNECTIONS) */}
+                        {/* 2. OUTGOING (SENT) REQUESTS */}
+                        {outgoingRequests.length > 0 && (
+                            <section className="space-y-4">
+                                <h2 className="text-xl font-semibold flex items-center gap-2 opacity-90">
+                                    <SendIcon className="h-5 w-5 text-info" />
+                                    Sent Requests
+                                    <span className="badge badge-neutral ml-2">{outgoingRequests.length}</span>
+                                </h2>
+
+                                <div className="space-y-3">
+                                    {outgoingRequests.map((request) => (
+                                        <div
+                                            key={request._id}
+                                            className="card bg-base-100 border border-base-300 shadow-sm"
+                                        >
+                                            <div className="card-body p-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="avatar w-12 h-12 rounded-full opacity-75">
+                                                            <img
+                                                                src={request.recipient.profilePic || "/avatar.png"}
+                                                                alt={request.recipient.fullName}
+                                                                className="rounded-full object-cover"
+                                                            />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="font-medium">{request.recipient.fullName}</h3>
+                                                            <div className="flex flex-wrap gap-1.5 scale-90 origin-left opacity-80">
+                                                                <span className="badge badge-secondary badge-outline">
+                                                                    <LanguageFlag language={request.recipient.nativeLanguage} />
+                                                                    Native: {capitialize(request.recipient.nativeLanguage)}
+                                                                </span>
+                                                                <span className="badge badge-outline">
+                                                                    <LanguageFlag language={request.recipient.learningLanguage} />
+                                                                    Learning: {capitialize(request.recipient.learningLanguage)}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 text-sm opacity-60">
+                                                        <ClockIcon className="h-4 w-4" />
+                                                        <span className="hidden sm:inline">Pending</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
+
+                        {/* 3. ACCEPTED REQUESTS (HISTORY) */}
                         {acceptedRequests.length > 0 && (
                             <section className="space-y-4">
                                 <h2 className="text-xl font-semibold flex items-center gap-2">
@@ -138,7 +199,7 @@ const NotificationsPage = () => {
                             </section>
                         )}
 
-                        {incomingRequests.length === 0 && acceptedRequests.length === 0 && (
+                        {incomingRequests.length === 0 && outgoingRequests.length === 0 && acceptedRequests.length === 0 && (
                             <NoNotificationsFound />
                         )}
                     </>
