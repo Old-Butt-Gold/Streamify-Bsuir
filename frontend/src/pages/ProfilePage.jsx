@@ -36,6 +36,11 @@ const ProfilePage = () => {
             return;
         }
 
+        if (file.size > 1024 * 95) {
+            toast.error("File size too large! Please upload an image under 95 KB.");
+            return;
+        }
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = () => {
