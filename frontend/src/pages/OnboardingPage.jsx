@@ -43,7 +43,7 @@ const OnboardingPage = () => {
         }
 
         if (file.size > 2 * 1024 * 1024) {
-            toast.error("File size too large! Please upload an image under 4MB.");
+            toast.error("File size too large! Please upload an image under 2MB.");
             return;
         }
 
