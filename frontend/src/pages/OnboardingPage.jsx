@@ -1,13 +1,13 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import useAuthUser from "../hooks/useAuthUser";
 import toast from "react-hot-toast";
-import { CameraIcon, LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon, UploadIcon } from "lucide-react";
+import { LoaderIcon, ShipWheelIcon, ShuffleIcon } from "lucide-react";
 import { LANGUAGES } from "../constants";
 import useOnboarding from "../hooks/useOnboarding.js";
+import {getRandomAvatar} from "../lib/utils.js";
 
 const OnboardingPage = () => {
     const { authUser } = useAuthUser();
-    const fileInputRef = useRef(null);
 
     const [formState, setFormState] = useState({
         fullName: authUser?.fullName || "",
@@ -26,35 +26,10 @@ const OnboardingPage = () => {
     };
 
     const handleRandomAvatar = () => {
-        const idx = Math.floor(Math.random() * 100) + 1;
-        const randomAvatar = `https://avatar.iran.liara.run/public/${idx}.png`;
+        const randomAvatar = getRandomAvatar();
 
         setFormState({ ...formState, profilePic: randomAvatar });
-        toast.success("Random profile picture generated!");
-    };
-
-    const handleImageUpload = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        if (!file.type.startsWith("image/")) {
-            toast.error("Please select a valid image file");
-            return;
-        }
-
-        if (file.size > 1024 * 95) {
-            toast.error("File size too large! Please upload an image under 95 KB.");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-
-        reader.onload = () => {
-            const base64Image = reader.result;
-            setFormState({ ...formState, profilePic: base64Image });
-            toast.success("Image uploaded successfully!");
-        };
+        toast.success("New avatar generated!");
     };
 
     return (
@@ -66,21 +41,8 @@ const OnboardingPage = () => {
                     <form onSubmit={handleSubmit} className="space-y-6">
                         {/* PROFILE PIC CONTAINER */}
                         <div className="flex flex-col items-center justify-center space-y-4">
-
-                            {/* Скрытый инпут для файла */}
-                            <input
-                                type="file"
-                                accept="image/*"
-                                ref={fileInputRef}
-                                className="hidden"
-                                onChange={handleImageUpload}
-                            />
-
-                            {/* IMAGE PREVIEW (Кликабельный) */}
-                            <div
-                                className="size-32 rounded-full bg-base-300 overflow-hidden relative group cursor-pointer border-4 border-transparent hover:border-primary transition-all"
-                                onClick={() => fileInputRef.current?.click()}
-                            >
+                            {/* IMAGE PREVIEW */}
+                            <div className="size-32 rounded-full bg-base-300 overflow-hidden ring-4 ring-base-100 shadow-lg">
                                 {formState.profilePic ? (
                                     <img
                                         src={formState.profilePic}
@@ -88,35 +50,17 @@ const OnboardingPage = () => {
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
-                                    <div className="flex items-center justify-center h-full">
-                                        <CameraIcon className="size-12 text-base-content opacity-40" />
+                                    <div className="flex items-center justify-center h-full bg-gradient-to-br from-primary/20 to-secondary/20 text-base-content/40 font-medium">
+                                        No Img
                                     </div>
                                 )}
-
-                                {/* Оверлей при наведении */}
-                                <div className="absolute inset-0 bg-black/40 hidden group-hover:flex items-center justify-center transition-all">
-                                    <CameraIcon className="size-8 text-white" />
-                                </div>
                             </div>
 
-                            {/* Кнопки управления аватаром */}
-                            <div className="flex items-center gap-3">
-                                <button
-                                    type="button"
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="btn btn-sm btn-outline"
-                                >
-                                    <UploadIcon className="size-4 mr-2" />
-                                    Upload Photo
-                                </button>
-
-                                <button
-                                    type="button"
-                                    onClick={handleRandomAvatar}
-                                    className="btn btn-sm btn-accent"
-                                >
+                            {/* Generate Random Avatar BTN */}
+                            <div className="flex items-center gap-2">
+                                <button type="button" onClick={handleRandomAvatar} className="btn btn-accent btn-sm">
                                     <ShuffleIcon className="size-4 mr-2" />
-                                    Random
+                                    Randomize Look
                                 </button>
                             </div>
                         </div>
@@ -193,22 +137,19 @@ const OnboardingPage = () => {
                             </div>
                         </div>
 
-                        {/* LOCATION */}
+                        {/* LOCATION (Optional removed MapPin for cleaner look if needed, but kept based on request) */}
                         <div className="form-control">
                             <label className="label">
                                 <span className="label-text">Location</span>
                             </label>
-                            <div className="relative">
-                                <MapPinIcon className="absolute top-1/2 transform -translate-y-1/2 left-3 size-5 text-base-content opacity-70" />
-                                <input
-                                    type="text"
-                                    name="location"
-                                    value={formState.location}
-                                    onChange={(e) => setFormState({ ...formState, location: e.target.value })}
-                                    className="input input-bordered w-full pl-10"
-                                    placeholder="City, Country"
-                                />
-                            </div>
+                            <input
+                                type="text"
+                                name="location"
+                                value={formState.location}
+                                onChange={(e) => setFormState({ ...formState, location: e.target.value })}
+                                className="input input-bordered w-full"
+                                placeholder="City, Country"
+                            />
                         </div>
 
                         {/* SUBMIT BUTTON */}

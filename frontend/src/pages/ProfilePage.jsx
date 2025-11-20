@@ -1,17 +1,17 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import useAuthUser from "../hooks/useAuthUser";
 import useUpdateProfile from "../hooks/useUpdateProfile";
-import { CameraIcon, MapPinIcon, UserIcon, SaveIcon, XIcon, PencilIcon, MailIcon, CalendarIcon } from "lucide-react";
+import { MapPinIcon, UserIcon, SaveIcon, XIcon, PencilIcon, MailIcon, CalendarIcon, ShuffleIcon } from "lucide-react";
 import { LANGUAGES } from "../constants";
 import toast from "react-hot-toast";
 import LanguageFlag from "../components/LanguageFlag.jsx";
+import {getRandomAvatar} from "../lib/utils.js";
 
 const ProfilePage = () => {
     const { authUser } = useAuthUser();
     const { updateProfileMutation, isUpdating } = useUpdateProfile();
 
     const [isEditing, setIsEditing] = useState(false);
-    const fileInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
         fullName: "", bio: "", location: "", nativeLanguage: "", learningLanguage: "", profilePic: "",
@@ -21,31 +21,21 @@ const ProfilePage = () => {
         if (authUser) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setFormData({
-                fullName: authUser.fullName || "", bio: authUser.bio || "", location: authUser.location || "",
-                nativeLanguage: authUser.nativeLanguage || "", learningLanguage: authUser.learningLanguage || "", profilePic: authUser.profilePic || "",
+                fullName: authUser.fullName || "",
+                bio: authUser.bio || "",
+                location: authUser.location || "",
+                nativeLanguage: authUser.nativeLanguage || "",
+                learningLanguage: authUser.learningLanguage || "",
+                profilePic: authUser.profilePic || "",
             });
         }
     }, [authUser]);
 
-    const handleImageUpload = (e) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    const handleRandomAvatar = () => {
+        const randomAvatar = getRandomAvatar();
 
-        if (!file.type.startsWith("image/")) {
-            toast.error("Please select an image file");
-            return;
-        }
-
-        if (file.size > 1024 * 95) {
-            toast.error("File size too large! Please upload an image under 95 KB.");
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            setFormData({ ...formData, profilePic: reader.result });
-        };
+        setFormData({ ...formData, profilePic: randomAvatar });
+        toast.success("Generated new look!");
     };
 
     const handleSubmit = (e) => {
@@ -65,17 +55,7 @@ const ProfilePage = () => {
         });
 
         if (missingFields.length > 0) {
-            toast.error(
-                <div>
-                    <p className="font-bold">Please fill in all required fields:</p>
-                    <ul className="list-disc pl-5 mt-1">
-                        {missingFields.map(({ label }) => (
-                            <li key={label} className="text-sm">{label}</li>
-                        ))}
-                    </ul>
-                </div>,
-                { duration: 5000 }
-            );
+            toast.error("Please fill in all required fields");
             return;
         }
 
@@ -122,26 +102,32 @@ const ProfilePage = () => {
                                         />
                                     </div>
 
+                                    {/* Overlay for Edit Mode */}
                                     {isEditing && (
-                                        <>
-                                            <div
-                                                className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={() => fileInputRef.current?.click()}
-                                            >
-                                                <CameraIcon className="size-8 text-white" />
-                                            </div>
-                                            <input
-                                                type="file"
-                                                hidden
-                                                ref={fileInputRef}
-                                                onChange={handleImageUpload}
-                                                accept="image/*"
-                                            />
-                                        </>
+                                        <div
+                                            className="absolute inset-0 bg-black/40 flex items-center justify-center rounded-full cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity"
+                                            onClick={handleRandomAvatar}
+                                            title="Click to randomize"
+                                        >
+                                            <ShuffleIcon className="size-8 text-white" />
+                                        </div>
                                     )}
                                 </div>
 
-                                <div className="mt-4 w-full">
+                                {/* Random Button for clearer UX */}
+                                {isEditing && (
+                                    <button
+                                        type="button"
+                                        onClick={handleRandomAvatar}
+                                        className="btn btn-sm btn-accent mt-4 w-full"
+                                    >
+                                        <ShuffleIcon className="size-4 mr-2" />
+                                        Random Avatar
+                                    </button>
+                                )}
+
+                                <div className="mt-4 w-full space-y-2">
+                                    {/* Full Name Field */}
                                     {isEditing ? (
                                         <input
                                             type="text"
@@ -154,12 +140,12 @@ const ProfilePage = () => {
                                         <h2 className="text-xl font-bold">{authUser?.fullName}</h2>
                                     )}
 
-                                    <div className="flex items-center justify-center gap-2 mt-2 text-sm opacity-70">
+                                    <div className="flex items-center justify-center gap-2 text-sm opacity-70">
                                         <MailIcon className="size-4" />
                                         <span>{authUser?.email}</span>
                                     </div>
 
-                                    <div className="flex items-center justify-center gap-2 mt-1 text-sm opacity-50">
+                                    <div className="flex items-center justify-center gap-2 text-sm opacity-50">
                                         <CalendarIcon className="size-4" />
                                         <span>Joined {formattedDate}</span>
                                     </div>
